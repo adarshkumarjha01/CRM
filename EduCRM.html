@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduCRM — Student Counseling System</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f5f7;--surface:#ffffff;--surface2:#f8f9fb;--sidebar:#1e2330;--sidebar-hover:#2a3145;--sidebar-active:#3b82f6;
+  --text:#1a1d27;--text2:#6b7280;--text3:#9ca3af;--border:#e5e7eb;--border2:#d1d5db;
+  --blue:#3b82f6;--blue-light:#eff6ff;--blue-dark:#1d4ed8;
+  --green:#10b981;--green-light:#ecfdf5;--amber:#f59e0b;--amber-light:#fffbeb;
+  --red:#ef4444;--red-light:#fef2f2;--purple:#8b5cf6;--purple-light:#f5f3ff;
+  --radius:8px;--radius-lg:12px;--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.05);
+}
+[data-theme="dark"]{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#222636;--sidebar:#111421;--sidebar-hover:#1a1d2e;
+  --text:#e5e7eb;--text2:#9ca3af;--text3:#6b7280;--border:#2a2d3e;--border2:#3a3d52;
+  --blue-light:#1e3a5f;--green-light:#064e3b;--amber-light:#451a03;--red-light:#450a0a;--purple-light:#2e1065;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--text);background:var(--bg);font-size:14px;line-height:1.5;min-height:100vh;overflow:hidden}
+
+/* LAYOUT */
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;flex-shrink:0;background:var(--sidebar);display:flex;flex-direction:column;overflow-y:auto}
+.main-area{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.main-content{flex:1;overflow-y:auto;padding:20px;background:var(--bg)}
+.page{display:none}.page.active{display:block}
+
+/* SIDEBAR */
+.sidebar-logo{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.06)}
+.logo-text{font-size:18px;font-weight:700;color:#fff;letter-spacing:-.3px}.logo-text span{color:var(--blue)}
+.logo-sub{font-size:11px;color:rgba(255,255,255,.35);margin-top:1px}
+.nav-section{font-size:10px;font-weight:600;color:rgba(255,255,255,.25);letter-spacing:.08em;text-transform:uppercase;padding:16px 16px 6px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 16px;cursor:pointer;font-size:13px;color:rgba(255,255,255,.55);border-left:2px solid transparent;transition:all .15s;text-decoration:none}
+.nav-item:hover{background:var(--sidebar-hover);color:rgba(255,255,255,.85)}
+.nav-item.active{color:#fff;border-left-color:var(--blue);background:var(--sidebar-hover)}
+.nav-item i{font-size:17px;flex-shrink:0}
+.nav-item .badge-count{margin-left:auto;background:var(--blue);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600}
+.sidebar-footer{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,.06)}
+.user-card-mini{display:flex;align-items:center;gap:8px;padding:8px;border-radius:var(--radius);cursor:pointer;transition:.15s}
+.user-card-mini:hover{background:var(--sidebar-hover)}
+.user-info .uname{font-size:12px;font-weight:500;color:rgba(255,255,255,.85)}
+.user-info .urole{font-size:10px;color:rgba(255,255,255,.35)}
+
+/* TOP BAR */
+.topbar-title{font-size:15px;font-weight:600}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.theme-btn{padding:6px 8px;border:1px solid var(--border);border-radius:var(--radius);background:transparent;cursor:pointer;color:var(--text2);font-size:16px;display:flex;align-items:center}
+.theme-btn:hover{background:var(--surface2)}
+
+/* AVATAR */
+.av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0;font-size:11px}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow)}
+.card-title{font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--kpi-color,var(--blue))}
+.kpi-label{font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:500}
+.kpi-val{font-size:26px;font-weight:700;line-height:1.1}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:3px}
+
+/* BUTTONS */
+.btn{padding:7px 14px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;cursor:pointer;background:var(--surface);color:var(--text);font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:all .15s;font-weight:500}
+.btn:hover{background:var(--surface2);border-color:var(--border2)}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-primary:hover{background:var(--blue-dark);border-color:var(--blue-dark)}
+.btn-danger{background:var(--red);color:#fff;border-color:var(--red)}
+.btn-danger:hover{background:#dc2626;border-color:#dc2626}
+.btn-success{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-ghost{border-color:transparent;background:transparent;color:var(--text2)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.b-blue{background:var(--blue-light);color:var(--blue-dark)}
+.b-green{background:var(--green-light);color:#065f46}
+.b-amber{background:var(--amber-light);color:#92400e}
+.b-red{background:var(--red-light);color:#991b1b}
+.b-gray{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.b-purple{background:var(--purple-light);color:#5b21b6}
+
+/* FORMS */
+input,select,textarea{padding:8px 11px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;width:100%;transition:.15s}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+textarea{resize:vertical;min-height:72px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:12px;font-weight:500;color:var(--text2)}
+.frow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:var(--radius-lg);border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:9px 12px;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);background:var(--surface2);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--surface2)}
+.td-name{font-weight:600}
+.td-sub{font-size:11px;color:var(--text3);margin-top:1px}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:16px;gap:0}
+.tab{padding:8px 16px;font-size:13px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;font-weight:500;transition:.15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+/* SEARCH ROW */
+.search-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.search-row input{flex:1;min-width:180px}
+.search-row select{min-width:150px;width:auto;flex:0}
+
+/* PAGE HEADER */
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.ph-title{font-size:18px;font-weight:700}
+
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.chart-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow)}
+.chart-box .chart-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
+.chart-wrap{position:relative;height:220px}
+
+/* ACTIVITY */
+.activity-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.activity-item:last-child{border-bottom:none}
+.a-dot{width:8px;height:8px;border-radius:50%;background:var(--blue);margin-top:5px;flex-shrink:0}
+.a-name{font-size:13px;font-weight:600}
+.a-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.a-note{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* COUNSELOR WORKLOAD CARD */
+.c-work-card{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);margin-bottom:8px}
+.c-work-info{flex:1}
+.c-work-name{font-size:13px;font-weight:600}
+.c-stats{display:flex;gap:14px;margin-top:4px;font-size:11px;color:var(--text2)}
+.pbar-bg{background:var(--surface2);border-radius:4px;height:5px;margin-top:6px;overflow:hidden;border:1px solid var(--border)}
+.pbar{height:100%;border-radius:4px;transition:.3s}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0f1117 0%,#1e2330 50%,#0f1117 100%);display:flex;align-items:center;justify-content:center;z-index:1000}
+.login-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:36px;width:400px;backdrop-filter:blur(20px)}
+.login-logo-big{font-size:26px;font-weight:800;color:#fff;text-align:center;margin-bottom:4px}.login-logo-big span{color:var(--blue)}
+.login-tagline{font-size:13px;color:rgba(255,255,255,.4);text-align:center;margin-bottom:28px}
+.login-field label{font-size:12px;font-weight:500;color:rgba(255,255,255,.5);display:block;margin-bottom:5px}
+.login-field input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;margin-bottom:12px}
+.login-field input::placeholder{color:rgba(255,255,255,.25)}
+.login-field input:focus{border-color:var(--blue);background:rgba(59,130,246,.08)}
+.login-err{font-size:12px;color:#fca5a5;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:7px 11px;margin-bottom:12px;display:none}
+.login-divider{text-align:center;font-size:12px;color:rgba(255,255,255,.2);margin:20px 0;position:relative}
+.login-divider::before,.login-divider::after{content:'';position:absolute;top:50%;width:44%;height:1px;background:rgba(255,255,255,.08)}
+.login-divider::before{left:0}.login-divider::after{right:0}
+.quick-login-btn{width:100%;padding:9px 12px;border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);background:rgba(255,255,255,.03);color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;gap:9px;margin-bottom:6px;font-size:13px;font-family:inherit;transition:.15s;text-align:left}
+.quick-login-btn:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15)}
+.quick-login-btn i{font-size:16px}
+.ql-sub{font-size:11px;color:rgba(255,255,255,.3);margin-left:auto}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:500;backdrop-filter:blur(2px)}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-md)}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:16px}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
+.modal .fg{margin-bottom:12px}
+
+/* TIMER */
+.timer-pill{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-weight:600;background:var(--surface2);font-family:monospace;transition:.2s}
+.timer-pill.running{background:var(--green-light);border-color:var(--green);color:#065f46}
+.timer-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:.2s}
+.timer-pill.running .timer-dot{background:var(--green)}
+
+/* TOAST */
+#toast{position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:var(--radius);font-size:13px;font-weight:500;color:#fff;z-index:9999;opacity:0;transform:translateY(8px);transition:.25s;pointer-events:none;box-shadow:var(--shadow-md)}
+#toast.show{opacity:1;transform:translateY(0)}
+
+/* INFO BANNER */
+.info-banner{background:var(--blue-light);border:1px solid rgba(59,130,246,.2);border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--blue-dark);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+/* PERMISSION TABLE */
+.perm-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.perm-row:last-child{border-bottom:none}
+.toggle-sw{position:relative;width:34px;height:19px;flex-shrink:0}
+.toggle-sw input{opacity:0;width:0;height:0;position:absolute}
+.ts-track{position:absolute;inset:0;background:var(--border2);border-radius:10px;cursor:pointer;transition:.2s}
+.ts-track::before{content:'';position:absolute;width:13px;height:13px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.toggle-sw input:checked+.ts-track{background:var(--blue)}
+.toggle-sw input:checked+.ts-track::before{transform:translateX(15px)}
+
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed var(--border2);border-radius:var(--radius-lg);padding:32px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface)}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--blue);background:var(--blue-light)}
+.upload-zone i{font-size:36px;color:var(--blue);display:block;margin-bottom:10px}
+.upload-zone p{font-size:13px;color:var(--text2);margin-bottom:4px}
+.upload-zone small{font-size:11px;color:var(--text3)}
+
+/* STAT ANALYTICS TABLE */
+.analytics-table td{font-size:13px}
+.progress-cell{min-width:80px}
+.mini-bar{height:6px;border-radius:3px;background:var(--border);overflow:hidden}
+.mini-bar-fill{height:100%;border-radius:3px;transition:.3s}
+
+/* ROLE TAG */
+.role-tag{font-size:10px;padding:1px 6px;border-radius:20px;font-weight:600;display:inline-block}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:40px;color:var(--text3)}
+.empty-state i{font-size:40px;display:block;margin-bottom:12px;color:var(--border2)}
+.empty-state p{font-size:13px}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .charts-grid{grid-template-columns:1fr}
+  .sidebar{width:60px}
+  .sidebar .nav-item span,.sidebar .logo-sub,.sidebar .logo-text-full,.sidebar .user-info,.sidebar .nav-section{display:none}
+  .nav-item{padding:10px;justify-content:center}
+  .sidebar-logo{padding:14px 10px}
+}
+@media(max-width:600px){
+  .kpi-grid{grid-template-columns:1fr}
+  .main-content{padding:12px}
+  .fg2,.fg3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo-big"><span>Edu</span>CRM</div>
+    <div class="login-tagline">Student Counseling Management System</div>
+    <div class="login-field">
+      <label>Email address</label>
+      <input type="email" id="l-email" placeholder="you@institute.com" value="admin@educrm.com">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="l-pass" placeholder="••••••••" value="admin123" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="login-err" class="login-err"><i class="ti ti-alert-circle"></i> Invalid email or password.</div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:10px" onclick="doLogin()">
+      <i class="ti ti-login"></i> Sign in
+    </button>
+    <div class="login-divider">or sign in as</div>
+    <button class="quick-login-btn" onclick="quickLogin('admin')">
+      <i class="ti ti-shield-check" style="color:#8b5cf6"></i>
+      Admin &mdash; full access
+      <span class="ql-sub">admin@educrm.com</span>
+    </button>
+    <button class="quick-login-btn" onclick="quickLogin('c1')">
+      <i class="ti ti-user" style="color:#3b82f6"></i>
+      Anjali Singh — counselor
+      <span class="ql-sub">anjali@educrm.com</span>
+    </button>
+    <button class="quick-login-btn" onclick="quickLogin('c2')">
+      <i class="ti ti-user" style="color:#10b981"></i>
+      Ramesh Kumar — counselor
+      <span class="ql-sub">ramesh@educrm.com</span>
+    </button>
+    <button class="quick-login-btn" onclick="quickLogin('c3')">
+      <i class="ti ti-user" style="color:#f59e0b"></i>
+      Neha Gupta — counselor
+      <span class="ql-sub">neha@educrm.com</span>
+    </button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="main-app" style="display:none">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-text"><span>Edu</span><span class="logo-text-full">CRM</span></div>
+      <div class="logo-sub">Student Counseling</div>
+    </div>
+    <div id="sidebar-nav"></div>
+    <div class="sidebar-footer">
+      <div class="user-card-mini" onclick="doLogout()">
+        <div class="av" id="sb-av" style="width:30px;height:30px"></div>
+        <div class="user-info">
+          <div class="uname" id="sb-name"></div>
+          <div class="urole" id="sb-role"></div>
+        </div>
+        <i class="ti ti-logout" style="margin-left:auto;font-size:15px;color:rgba(255,255,255,.3)"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main-area">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-right">
+        <button class="theme-btn" onclick="toggleTheme()" title="Toggle dark/light mode" id="theme-btn"><i class="ti ti-moon"></i></button>
+        <div class="av" id="tb-av" style="width:32px;height:32px;font-size:12px;cursor:pointer" onclick="doLogout()" title="Sign out"></div>
+      </div>
+    </div>
+
+    <!-- PAGES -->
+    <div class="main-content">
+      <div class="page active" id="pg-dashboard"></div>
+      <div class="page" id="pg-students"></div>
+      <div class="page" id="pg-calls"></div>
+      <div class="page" id="pg-analytics"></div>
+      <div class="page" id="pg-users"></div>
+      <div class="page" id="pg-import"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONTAINER -->
+<div id="modal-root"></div>
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ─── DATA ───────────────────────────────────────────────
+const DB = {
+  users: [
+    {id:'admin',name:'Admin',email:'admin@educrm.com',password:'admin123',role:'admin',color:'#8b5cf6',active:true,created:'2024-01-01'},
+    {id:'c1',name:'Anjali Singh',email:'anjali@educrm.com',password:'pass123',role:'counselor',color:'#3b82f6',active:true,created:'2024-01-02'},
+    {id:'c2',name:'Ramesh Kumar',email:'ramesh@educrm.com',password:'pass123',role:'counselor',color:'#10b981',active:true,created:'2024-01-03'},
+    {id:'c3',name:'Neha Gupta',email:'neha@educrm.com',password:'pass123',role:'counselor',color:'#f59e0b',active:true,created:'2024-01-04'},
+  ],
+  students: [
+    {id:1,name:'Priya Sharma',email:'priya@example.com',phone:'9876543210',course:'MBA',city:'Mumbai',counselorId:'c1',status:'Contacted',notes:'Very interested in MBA finance',created:'2024-01-10'},
+    {id:2,name:'Rahul Verma',email:'rahul@example.com',phone:'9123456789',course:'BBA',city:'Delhi',counselorId:'c1',status:'Follow-up',notes:'Wants to compare with other institutes',created:'2024-01-12'},
+    {id:3,name:'Sneha Patel',email:'sneha@example.com',phone:'9988776655',course:'MBA',city:'Ahmedabad',counselorId:'c2',status:'Enrolled',notes:'Documents submitted. Fee paid.',created:'2024-01-14'},
+    {id:4,name:'Amit Joshi',email:'amit@example.com',phone:'9871234560',course:'BCA',city:'Pune',counselorId:'c2',status:'New',notes:'',created:'2024-01-15'},
+    {id:5,name:'Divya Nair',email:'divya@example.com',phone:'9765432109',course:'MBA',city:'Bangalore',counselorId:'c3',status:'Contacted',notes:'Called twice. Interested.',created:'2024-01-16'},
+    {id:6,name:'Karan Mehta',email:'karan@example.com',phone:'9654321098',course:'MCA',city:'Chennai',counselorId:'c3',status:'Inactive',notes:'Not responding to calls',created:'2024-01-17'},
+    {id:7,name:'Pooja Rao',email:'pooja@example.com',phone:'9543210987',course:'BBA',city:'Hyderabad',counselorId:'c1',status:'New',notes:'',created:'2024-01-18'},
+    {id:8,name:'Arun Das',email:'arun@example.com',phone:'9432109876',course:'MBA',city:'Kolkata',counselorId:null,status:'New',notes:'',created:'2024-01-19'},
+    {id:9,name:'Meena Iyer',email:'meena@example.com',phone:'9321098765',course:'MBA',city:'Pune',counselorId:'c2',status:'Follow-up',notes:'Scholarship inquiry',created:'2024-01-20'},
+    {id:10,name:'Vijay Krishnan',email:'vijay@example.com',phone:'9210987654',course:'MCA',city:'Bangalore',counselorId:'c3',status:'Enrolled',notes:'Confirmed seat',created:'2024-01-21'},
+  ],
+  calls: [
+    {id:1,studentId:1,counselorId:'c1',date:'2024-01-18',time:'10:30',duration:12,outcome:'Connected',notes:'Discussed MBA Finance program. Very keen on joining.'},
+    {id:2,studentId:2,counselorId:'c1',date:'2024-01-18',time:'11:15',duration:8,outcome:'Connected',notes:'Follow-up scheduled for next week'},
+    {id:3,studentId:3,counselorId:'c2',date:'2024-01-19',time:'09:45',duration:20,outcome:'Connected',notes:'Enrollment confirmed. Documents collected.'},
+    {id:4,studentId:4,counselorId:'c2',date:'2024-01-19',time:'14:00',duration:0,outcome:'No answer',notes:''},
+    {id:5,studentId:5,counselorId:'c3',date:'2024-01-20',time:'16:30',duration:15,outcome:'Connected',notes:'Interested in hostel options and transport'},
+    {id:6,studentId:6,counselorId:'c3',date:'2024-01-20',time:'17:00',duration:3,outcome:'Voicemail',notes:'Left voicemail message'},
+    {id:7,studentId:1,counselorId:'c1',date:'2024-01-21',time:'10:00',duration:18,outcome:'Connected',notes:'Documents requested. Sending brochure by email.'},
+    {id:8,studentId:5,counselorId:'c3',date:'2024-01-21',time:'11:00',duration:10,outcome:'Callback requested',notes:'Will call tomorrow 10am'},
+    {id:9,studentId:9,counselorId:'c2',date:'2024-01-22',time:'09:00',duration:14,outcome:'Connected',notes:'Scholarship details explained'},
+    {id:10,studentId:10,counselorId:'c3',date:'2024-01-22',time:'15:30',duration:22,outcome:'Connected',notes:'Seat confirmed. Joining date discussed.'},
+    {id:11,studentId:7,counselorId:'c1',date:'2024-01-23',time:'10:00',duration:0,outcome:'No answer',notes:''},
+    {id:12,studentId:2,counselorId:'c1',date:'2024-01-23',time:'14:00',duration:9,outcome:'Connected',notes:'Comparing with another institute. Decision next week.'},
+  ],
+  nextSId: 11,
+  nextCId: 13,
+};
+
+// ─── STATE ──────────────────────────────────────────────
+let CU = null; // current user
+let importRows = [];
+let timerInterval = null, timerSecs = 0;
+let chartInstances = {};
+let darkMode = false;
+
+// ─── HELPERS ────────────────────────────────────────────
+const ini = n => n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+const fmtDur = m => !m ? '—' : m >= 60 ? `${Math.floor(m/60)}h ${m%60}m` : `${m}m`;
+const fmtDate = d => { try { return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); } catch { return d||'—'; }};
+const getUser = id => DB.users.find(u=>u.id===id);
+const getStudent = id => DB.students.find(s=>s.id===id);
+const counselors = () => DB.users.filter(u=>u.role==='counselor'&&u.active);
+const myStudents = () => CU.role==='admin' ? DB.students : DB.students.filter(s=>s.counselorId===CU.id);
+const myCalls = () => CU.role==='admin' ? DB.calls : DB.calls.filter(c=>c.counselorId===CU.id);
+
+function showToast(msg, color='#10b981') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.background = color;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+function toggleTheme() {
+  darkMode = !darkMode;
+  document.documentElement.setAttribute('data-theme', darkMode?'dark':'');
+  document.getElementById('theme-btn').innerHTML = darkMode ? '<i class="ti ti-sun"></i>' : '<i class="ti ti-moon"></i>';
+}
+
+const statusBadge = s => {
+  const m = {New:'b-blue',Contacted:'b-amber','Follow-up':'b-amber',Enrolled:'b-green',Inactive:'b-gray'};
+  return `<span class="badge ${m[s]||'b-gray'}">${s}</span>`;
+};
+const outcomeBadge = o => {
+  const m = {Connected:'b-green','No answer':'b-gray',Voicemail:'b-amber','Callback requested':'b-blue'};
+  return `<span class="badge ${m[o]||'b-gray'}">${o}</span>`;
+};
+
+function avHtml(name, color, size=32, fsize=12) {
+  return `<div class="av" style="width:${size}px;height:${size}px;font-size:${fsize}px;background:${color}22;color:${color}">${ini(name)}</div>`;
+}
+
+function destroyChart(id) {
+  if (chartInstances[id]) { try { chartInstances[id].destroy(); } catch{} delete chartInstances[id]; }
+}
+
+// ─── AUTH ────────────────────────────────────────────────
+function doLogin() {
+  const em = document.getElementById('l-email').value.trim();
+  const pw = document.getElementById('l-pass').value;
+  const u = DB.users.find(u => u.email===em && u.password===pw && u.active);
+  if (!u) { document.getElementById('login-err').style.display='flex'; return; }
+  document.getElementById('login-err').style.display='none';
+  loginAs(u);
+}
+function quickLogin(uid) { loginAs(DB.users.find(u=>u.id===uid)); }
+function loginAs(user) {
+  CU = user;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'flex';
+  document.getElementById('sb-name').textContent = user.name;
+  document.getElementById('sb-role').textContent = user.role==='admin' ? 'Administrator' : 'Counselor';
+  document.getElementById('sb-av').style.cssText = `width:30px;height:30px;background:${user.color}33;color:${user.color};font-size:11px`;
+  document.getElementById('sb-av').textContent = ini(user.name);
+  document.getElementById('tb-av').style.cssText = `width:32px;height:32px;font-size:12px;cursor:pointer;background:${user.color}33;color:${user.color}`;
+  document.getElementById('tb-av').textContent = ini(user.name);
+  buildNav(); nav('dashboard');
+}
+function doLogout() {
+  CU = null;
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('l-pass').value = '';
+}
+
+// ─── NAV ─────────────────────────────────────────────────
+const ADMIN_NAV = [
+  {sec:'Overview'}, {id:'dashboard',label:'Dashboard',icon:'ti-layout-dashboard'},
+  {sec:'Students'}, {id:'students',label:'Students',icon:'ti-users'}, {id:'calls',label:'Call log',icon:'ti-phone'},
+  {sec:'Reports'}, {id:'analytics',label:'Analytics',icon:'ti-chart-bar'},
+  {sec:'Administration'}, {id:'users',label:'User management',icon:'ti-shield-check'}, {id:'import',label:'Import data',icon:'ti-upload'},
+];
+const COUNSELOR_NAV = [
+  {sec:'My workspace'}, {id:'dashboard',label:'Dashboard',icon:'ti-layout-dashboard'}, {id:'students',label:'My students',icon:'ti-users'}, {id:'calls',label:'My calls',icon:'ti-phone'},
+];
+
+function buildNav() {
+  const nav = CU.role==='admin' ? ADMIN_NAV : COUNSELOR_NAV;
+  document.getElementById('sidebar-nav').innerHTML = nav.map(n =>
+    n.sec ? `<div class="nav-section">${n.sec}</div>`
+    : `<a class="nav-item" id="nav-${n.id}" onclick="nav('${n.id}')" href="javascript:void(0)"><i class="ti ${n.icon}"></i><span>${n.label}</span></a>`
+  ).join('');
+}
+
+function nav(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('pg-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const ni = document.getElementById('nav-'+id); if(ni) ni.classList.add('active');
+  const titles = {dashboard:'Dashboard',students:CU.role==='admin'?'Students':'My Students',calls:CU.role==='admin'?'Call Log':'My Calls',analytics:'Analytics',users:'User Management',import:'Import Data'};
+  document.getElementById('topbar-title').textContent = titles[id]||id;
+  if(id==='dashboard') renderDashboard();
+  else if(id==='students') renderStudents();
+  else if(id==='calls') renderCalls();
+  else if(id==='analytics') renderAnalytics();
+  else if(id==='users') renderUsers();
+  else if(id==='import') renderImport();
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────
+function renderDashboard() {
+  const students = myStudents(), calls = myCalls();
+  const enrolled = students.filter(s=>s.status==='Enrolled').length;
+  const unassigned = DB.students.filter(s=>!s.counselorId).length;
+  const totalDur = calls.reduce((a,c)=>a+(c.duration||0),0);
+  const isAdmin = CU.role==='admin';
+  const el = document.getElementById('pg-dashboard');
+  el.innerHTML = `
+    ${CU.role==='counselor' ? `<div class="info-banner"><i class="ti ti-info-circle"></i> Showing your data only. Contact admin to see other counselors.</div>` : ''}
+    <div class="kpi-grid">
+      <div class="kpi" style="--kpi-color:${isAdmin?'#3b82f6':'#8b5cf6'}"><div class="kpi-label">${isAdmin?'Total students':'My students'}</div><div class="kpi-val">${students.length}</div><div class="kpi-sub">${isAdmin?`${unassigned} unassigned`:'assigned to you'}</div></div>
+      <div class="kpi" style="--kpi-color:#10b981"><div class="kpi-label">Total calls</div><div class="kpi-val">${calls.length}</div><div class="kpi-sub">${fmtDur(totalDur)} talk time</div></div>
+      <div class="kpi" style="--kpi-color:#f59e0b"><div class="kpi-label">Enrolled</div><div class="kpi-val">${enrolled}</div><div class="kpi-sub">${Math.round(enrolled/Math.max(students.length,1)*100)}% conversion</div></div>
+      <div class="kpi" style="--kpi-color:#ef4444"><div class="kpi-label">${isAdmin?'Counselors':'Connected calls'}</div><div class="kpi-val">${isAdmin?counselors().length:calls.filter(c=>c.outcome==='Connected').length}</div><div class="kpi-sub">${isAdmin?'active team members':'calls connected'}</div></div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-box"><div class="chart-title">${isAdmin?'Calls per counselor':'My call outcomes'}</div><div class="chart-wrap"><canvas id="dc1" role="img" aria-label="Calls chart"></canvas></div></div>
+      <div class="chart-box"><div class="chart-title">Student status</div><div class="chart-wrap"><canvas id="dc2" role="img" aria-label="Student status doughnut"></canvas></div></div>
+    </div>
+    <div class="card"><div class="card-title">Recent activity</div><div id="dash-act"></div></div>`;
+
+  setTimeout(() => {
+    destroyChart('dc1'); destroyChart('dc2');
+    const cs = counselors();
+    const catColors = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#e87ba4','#eb6834'];
+    if (isAdmin) {
+      chartInstances.dc1 = new Chart(document.getElementById('dc1'), {
+        type:'bar',
+        data:{labels:cs.map(c=>c.name.split(' ')[0]),datasets:[{data:cs.map(c=>DB.calls.filter(ca=>ca.counselorId===c.id).length),backgroundColor:cs.map(c=>c.color+'cc'),borderRadius:6,borderSkipped:false}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{stepSize:1,color:'#9ca3af'}},x:{grid:{display:false},ticks:{color:'#9ca3af'}}}}
+      });
+    } else {
+      const outcomes = {}; calls.forEach(c=>{outcomes[c.outcome]=(outcomes[c.outcome]||0)+1});
+      chartInstances.dc1 = new Chart(document.getElementById('dc1'), {
+        type:'bar',
+        data:{labels:Object.keys(outcomes),datasets:[{data:Object.values(outcomes),backgroundColor:catColors,borderRadius:6}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{stepSize:1,color:'#9ca3af'}},x:{grid:{display:false},ticks:{color:'#9ca3af',maxRotation:30}}}}
+      });
+    }
+    const sc = {New:0,Contacted:0,'Follow-up':0,Enrolled:0,Inactive:0};
+    students.forEach(s=>{sc[s.status]=(sc[s.status]||0)+1});
+    chartInstances.dc2 = new Chart(document.getElementById('dc2'), {
+      type:'doughnut',
+      data:{labels:Object.keys(sc),datasets:[{data:Object.values(sc),backgroundColor:['#3b82f6cc','#f59e0bcc','#f59e0b88','#10b981cc','#9ca3afcc'],borderWidth:2,borderColor:'rgba(255,255,255,.8)'}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{boxWidth:12,padding:10,font:{size:11},color:'#6b7280'}}}}
+    });
+  }, 50);
+
+  const recent = [...myCalls()].sort((a,b)=>b.id-a.id).slice(0,6);
+  document.getElementById('dash-act').innerHTML = recent.length ? recent.map(c => {
+    const s=getStudent(c.studentId), co=getUser(c.counselorId);
+    return `<div class="activity-item"><div class="a-dot" style="background:${co?co.color:'#3b82f6'}"></div><div><div class="a-name">${s?s.name:'?'} <span style="font-weight:400;color:var(--text2)">— ${c.outcome}</span></div><div class="a-sub">${co?co.name:'?'} &middot; ${fmtDate(c.date)} ${c.time} &middot; ${fmtDur(c.duration)}</div>${c.notes?`<div class="a-note">${c.notes}</div>`:''}</div></div>`;
+  }).join('') : '<div class="empty-state"><i class="ti ti-phone-off"></i><p>No calls logged yet</p></div>';
+}
+
+// ─── STUDENTS ────────────────────────────────────────────
+function renderStudents(q='',sf='',cf='') {
+  const isAdmin = CU.role==='admin';
+  const cOpts = counselors().map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  const el = document.getElementById('pg-students');
+  el.innerHTML = `
+    <div class="ph">
+      <div class="ph-title">${isAdmin?'All students':'My students'} <span style="font-size:14px;font-weight:400;color:var(--text2);">(${myStudents().length})</span></div>
+      <button class="btn btn-primary" onclick="openStudentModal()"><i class="ti ti-plus"></i>Add student</button>
+    </div>
+    <div class="search-row">
+      <input id="sq" placeholder="Search name, course, city, email…" oninput="renderStudents(this.value,document.getElementById('ss').value,document.getElementById('sc').value)" value="${q}">
+      <select id="ss" onchange="renderStudents(document.getElementById('sq').value,this.value,document.getElementById('sc').value)" style="width:170px">
+        <option value="">All statuses</option><option>New</option><option>Contacted</option><option>Follow-up</option><option>Enrolled</option><option>Inactive</option>
+      </select>
+      ${isAdmin?`<select id="sc" onchange="renderStudents(document.getElementById('sq').value,document.getElementById('ss').value,this.value)" style="width:180px"><option value="">All counselors</option>${cOpts}</select>`:`<select id="sc" style="display:none"></select>`}
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Student</th><th>Course</th>${isAdmin?'<th>Counselor</th>':''}<th>Status</th><th>City</th><th>Last call</th><th>Calls</th><th style="text-align:right">Actions</th></tr></thead>
+        <tbody id="stb"></tbody>
+      </table>
+    </div>`;
+  if(sf) document.getElementById('ss').value=sf;
+  if(cf&&isAdmin) document.getElementById('sc').value=cf;
+
+  const lastCall = id => { const c=[...DB.calls].filter(c=>c.studentId===id).sort((a,b)=>b.id-a.id)[0]; return c?fmtDate(c.date):'Never'; };
+  const callCount = id => DB.calls.filter(c=>c.studentId===id).length;
+  let rows = myStudents().filter(s => {
+    const qm = !q || [s.name,s.email,s.course,s.city,s.phone].some(f=>(f||'').toLowerCase().includes(q.toLowerCase()));
+    const sm = !sf || s.status===sf;
+    const cm = !cf || s.counselorId===cf;
+    return qm&&sm&&cm;
+  });
+  document.getElementById('stb').innerHTML = rows.length ? rows.map(s => {
+    const co = getUser(s.counselorId);
+    return `<tr>
+      <td><div class="td-name">${s.name}</div><div class="td-sub">${s.email}</div></td>
+      <td>${s.course||'—'}</td>
+      ${isAdmin?`<td>${co?`<div style="display:flex;align-items:center;gap:7px">${avHtml(co.name,co.color,24,9)}<span>${co.name}</span></div>`:'<span class="badge b-red">Unassigned</span>'}</td>`:''}
+      <td>${statusBadge(s.status)}</td>
+      <td style="color:var(--text2)">${s.city||'—'}</td>
+      <td style="font-size:12px;color:var(--text3)">${lastCall(s.id)}</td>
+      <td style="text-align:center"><span class="badge b-gray">${callCount(s.id)}</span></td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="btn btn-sm" onclick="openCallModal(${s.id})" title="Log call"><i class="ti ti-phone"></i></button>
+        <button class="btn btn-sm" onclick="openStudentModal(${s.id})" title="Edit" style="margin-left:3px"><i class="ti ti-edit"></i></button>
+        ${isAdmin?`<button class="btn btn-sm btn-danger" onclick="deleteStudent(${s.id})" title="Delete" style="margin-left:3px"><i class="ti ti-trash"></i></button>`:''}
+      </td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="9" class="empty-state"><i class="ti ti-search" style="font-size:28px;display:block;margin-bottom:8px"></i>No students match your filters</td></tr>`;
+}
+
+// ─── CALLS ───────────────────────────────────────────────
+function renderCalls(cf='',of_='') {
+  const isAdmin = CU.role==='admin';
+  const cOpts = counselors().map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  const el = document.getElementById('pg-calls');
+  el.innerHTML = `
+    <div class="ph">
+      <div class="ph-title">${isAdmin?'All calls':'My calls'} <span style="font-size:14px;font-weight:400;color:var(--text2);">(${myCalls().length})</span></div>
+      <button class="btn btn-primary" onclick="openCallModal()"><i class="ti ti-phone-plus"></i>Log call</button>
+    </div>
+    <div class="search-row">
+      ${isAdmin?`<select id="cf-c" onchange="renderCalls(this.value,document.getElementById('cf-o').value)" style="width:190px"><option value="">All counselors</option>${cOpts}</select>`:''}
+      <select id="cf-o" onchange="renderCalls(${isAdmin?"document.getElementById('cf-c').value":'\'\''}, this.value)" style="width:190px">
+        <option value="">All outcomes</option><option>Connected</option><option>No answer</option><option>Voicemail</option><option>Callback requested</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Student</th>${isAdmin?'<th>Counselor</th>':''}<th>Date & time</th><th>Duration</th><th>Outcome</th><th>Notes</th></tr></thead>
+        <tbody id="ctb"></tbody>
+      </table>
+    </div>`;
+
+  let rows = [...myCalls()].sort((a,b)=>b.id-a.id).filter(c=>{
+    const cm = !cf || c.counselorId===cf;
+    const om = !of_ || c.outcome===of_;
+    return cm&&om;
+  });
+  document.getElementById('ctb').innerHTML = rows.length ? rows.map(c => {
+    const s=getStudent(c.studentId), co=getUser(c.counselorId);
+    return `<tr>
+      <td><div class="td-name">${s?s.name:'Deleted'}</div><div class="td-sub">${s?s.course:''}</div></td>
+      ${isAdmin?`<td>${co?`<div style="display:flex;align-items:center;gap:7px">${avHtml(co.name,co.color,24,9)}<span>${co.name}</span></div>`:'—'}</td>`:''}
+      <td style="font-size:12px">${fmtDate(c.date)}&nbsp;${c.time}</td>
+      <td style="font-size:12px">${fmtDur(c.duration)}</td>
+      <td>${outcomeBadge(c.outcome)}</td>
+      <td style="font-size:12px;color:var(--text2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.notes||'—'}</td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="7" class="empty-state"><i class="ti ti-phone-off" style="font-size:28px;display:block;margin-bottom:8px"></i>No calls found</td></tr>`;
+}
+
+// ─── ANALYTICS ───────────────────────────────────────────
+function renderAnalytics() {
+  const isAdmin = CU.role==='admin';
+  const students=myStudents(), calls=myCalls();
+  const enrolled = students.filter(s=>s.status==='Enrolled').length;
+  const contacted = students.filter(s=>['Contacted','Follow-up','Enrolled'].includes(s.status)).length;
+  const totalDur = calls.reduce((a,c)=>a+(c.duration||0),0);
+  const el = document.getElementById('pg-analytics');
+  el.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi" style="--kpi-color:#3b82f6"><div class="kpi-label">Total students</div><div class="kpi-val">${students.length}</div></div>
+      <div class="kpi" style="--kpi-color:#f59e0b"><div class="kpi-label">Contact rate</div><div class="kpi-val">${Math.round(contacted/Math.max(students.length,1)*100)}%</div></div>
+      <div class="kpi" style="--kpi-color:#10b981"><div class="kpi-label">Conversion</div><div class="kpi-val">${Math.round(enrolled/Math.max(students.length,1)*100)}%</div></div>
+      <div class="kpi" style="--kpi-color:#8b5cf6"><div class="kpi-label">Avg call duration</div><div class="kpi-val">${calls.length?Math.round(totalDur/calls.length):0}m</div></div>
+    </div>
+    <div class="tabs">
+      <div class="tab active" onclick="aTab('a-ov',this)">Overview</div>
+      ${isAdmin?'<div class="tab" onclick="aTab(\'a-cs\',this)">By counselor</div>':''}
+      <div class="tab" onclick="aTab('a-tr',this)">Trends</div>
+    </div>
+    <div id="a-ov">
+      <div class="charts-grid">
+        <div class="chart-box"><div class="chart-title">Conversion funnel</div><div class="chart-wrap"><canvas id="ac1" role="img" aria-label="Conversion funnel"></canvas></div></div>
+        <div class="chart-box"><div class="chart-title">Call outcomes</div><div class="chart-wrap"><canvas id="ac2" role="img" aria-label="Call outcomes"></canvas></div></div>
+      </div>
+      <div class="chart-box" style="margin-bottom:14px"><div class="chart-title">Course-wise enrollment</div><div class="chart-wrap" style="height:180px"><canvas id="ac3" role="img" aria-label="Course breakdown"></canvas></div></div>
+    </div>
+    ${isAdmin?`<div id="a-cs" style="display:none">
+      <div class="table-wrap" style="margin-bottom:14px">
+        <table class="analytics-table">
+          <thead><tr><th>Counselor</th><th>Assigned</th><th>Contacted</th><th>Enrolled</th><th>Calls</th><th>Talk time</th><th>Connect %</th><th>Workload</th></tr></thead>
+          <tbody>${counselors().map(c=>{
+            const cs=DB.students.filter(s=>s.counselorId===c.id).length;
+            const ct=DB.students.filter(s=>s.counselorId===c.id&&['Contacted','Follow-up','Enrolled'].includes(s.status)).length;
+            const ce=DB.students.filter(s=>s.counselorId===c.id&&s.status==='Enrolled').length;
+            const cc=DB.calls.filter(ca=>ca.counselorId===c.id);
+            const cd=cc.reduce((a,ca)=>a+(ca.duration||0),0);
+            const cr=cc.length?Math.round(cc.filter(ca=>ca.outcome==='Connected').length/cc.length*100):0;
+            const maxS=Math.max(...counselors().map(co=>DB.students.filter(s=>s.counselorId===co.id).length),1);
+            return `<tr><td><div style="display:flex;align-items:center;gap:8px">${avHtml(c.name,c.color,28,11)}<strong>${c.name}</strong></div></td><td>${cs}</td><td>${ct}</td><td>${ce}</td><td>${cc.length}</td><td>${fmtDur(cd)}</td><td><span class="badge ${cr>=60?'b-green':cr>=40?'b-amber':'b-red'}">${cr}%</span></td><td class="progress-cell" style="min-width:100px"><div class="mini-bar"><div class="mini-bar-fill" style="width:${Math.round(cs/maxS*100)}%;background:${c.color}"></div></div></td></tr>`;
+          }).join('')}</tbody>
+        </table>
+      </div>
+      <div class="chart-box"><div class="chart-title">Call volume per counselor</div><div style="position:relative;width:100%;height:${Math.max(counselors().length*48+80,180)}px"><canvas id="ac4" role="img" aria-label="Call volume by counselor"></canvas></div></div>
+    </div>`:''}
+    <div id="a-tr" style="display:none">
+      <div class="chart-box" style="margin-bottom:14px"><div class="chart-title">Daily call volume — last 14 days</div><div class="chart-wrap" style="height:230px"><canvas id="ac5" role="img" aria-label="Daily call trend"></canvas></div></div>
+      <div class="chart-box"><div class="chart-title">Student status over time</div><div class="chart-wrap" style="height:200px"><canvas id="ac6" role="img" aria-label="Status distribution"></canvas></div></div>
+    </div>`;
+
+  setTimeout(()=>{
+    destroyChart('ac1'); destroyChart('ac2'); destroyChart('ac3');
+    const funnelD = [students.length,contacted,students.filter(s=>['Follow-up','Enrolled'].includes(s.status)).length,enrolled];
+    chartInstances.ac1 = new Chart(document.getElementById('ac1'),{type:'bar',data:{labels:['Total','Contacted','Follow-up','Enrolled'],datasets:[{data:funnelD,backgroundColor:['#3b82f6aa','#f59e0baa','#f59e0bdd','#10b981dd'],borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#9ca3af',stepSize:1}},x:{grid:{display:false},ticks:{color:'#9ca3af'}}}}});
+    const outcomes={}; calls.forEach(c=>{outcomes[c.outcome]=(outcomes[c.outcome]||0)+1});
+    chartInstances.ac2 = new Chart(document.getElementById('ac2'),{type:'doughnut',data:{labels:Object.keys(outcomes),datasets:[{data:Object.values(outcomes),backgroundColor:['#10b981cc','#9ca3afcc','#f59e0bcc','#3b82f6cc'],borderWidth:2,borderColor:'rgba(255,255,255,.8)'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{boxWidth:12,padding:8,font:{size:11},color:'#6b7280'}}}}});
+    const courses={}; students.forEach(s=>{if(s.course)courses[s.course]=(courses[s.course]||0)+1});
+    chartInstances.ac3 = new Chart(document.getElementById('ac3'),{type:'bar',data:{labels:Object.keys(courses),datasets:[{data:Object.values(courses),backgroundColor:['#3b82f6cc','#10b981cc','#f59e0bcc','#ef4444cc','#8b5cf6cc'],borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#9ca3af',stepSize:1}},x:{grid:{display:false},ticks:{color:'#9ca3af'}}}}});
+  },50);
+}
+
+function aTab(id, el) {
+  ['a-ov','a-cs','a-tr'].forEach(t=>{const d=document.getElementById(t);if(d)d.style.display='none'});
+  document.getElementById(id).style.display='block';
+  document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  setTimeout(()=>{
+    const calls=myCalls();
+    if(id==='a-cs'&&!chartInstances.ac4) {
+      const cs=counselors();
+      chartInstances.ac4 = new Chart(document.getElementById('ac4'),{type:'bar',data:{labels:cs.map(c=>c.name),datasets:[{data:cs.map(c=>DB.calls.filter(ca=>ca.counselorId===c.id).length),backgroundColor:cs.map(c=>c.color+'cc'),borderRadius:6}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{stepSize:1,color:'#9ca3af'}},y:{grid:{display:false},ticks:{color:'#9ca3af'}}}}});
+    }
+    if(id==='a-tr'&&!chartInstances.ac5) {
+      const days=14,labels=[],data=[];
+      for(let i=days-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);labels.push(d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}));data.push(0)}
+      calls.forEach(c=>{const diff=Math.round((new Date()-new Date(c.date))/86400000);if(diff<days){const idx=days-1-diff;if(idx>=0)data[idx]++}});
+      chartInstances.ac5 = new Chart(document.getElementById('ac5'),{type:'line',data:{labels,datasets:[{data,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.08)',fill:true,tension:.35,pointRadius:4,pointBackgroundColor:'#3b82f6',borderWidth:2,pointHoverRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{stepSize:1,color:'#9ca3af'}},x:{grid:{display:false},ticks:{color:'#9ca3af',maxRotation:40}}}}});
+      destroyChart('ac6');
+      const statuses=['New','Contacted','Follow-up','Enrolled','Inactive'];
+      const statusColors=['#3b82f6','#f59e0b','#f59e0b','#10b981','#9ca3af'];
+      chartInstances.ac6 = new Chart(document.getElementById('ac6'),{type:'bar',data:{labels:statuses,datasets:[{data:statuses.map(st=>myStudents().filter(s=>s.status===st).length),backgroundColor:statusColors.map(c=>c+'cc'),borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{stepSize:1,color:'#9ca3af'}},x:{grid:{display:false},ticks:{color:'#9ca3af'}}}}});
+    }
+  },50);
+}
+
+// ─── USER MANAGEMENT ─────────────────────────────────────
+function renderUsers() {
+  if(CU.role!=='admin') return;
+  const el = document.getElementById('pg-users');
+  el.innerHTML = `
+    <div class="ph"><div class="ph-title">User management</div><button class="btn btn-primary" onclick="openUserModal()"><i class="ti ti-plus"></i>Add user</button></div>
+    <div class="table-wrap" style="margin-bottom:16px">
+      <table>
+        <thead><tr><th>User</th><th>Role</th><th>Email</th><th>Assigned students</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
+        <tbody>${DB.users.map(u=>`<tr>
+          <td><div style="display:flex;align-items:center;gap:9px">${avHtml(u.name,u.color,34,13)}<div><div class="td-name">${u.name}</div><div class="td-sub">ID: ${u.id}</div></div></div></td>
+          <td><span class="badge ${u.role==='admin'?'b-purple':'b-blue'}">${u.role==='admin'?'Admin':'Counselor'}</span></td>
+          <td style="color:var(--text2);font-size:12px">${u.email}</td>
+          <td style="text-align:center">${u.role==='counselor'?DB.students.filter(s=>s.counselorId===u.id).length:'—'}</td>
+          <td><span class="badge ${u.active?'b-green':'b-red'}">${u.active?'Active':'Disabled'}</span></td>
+          <td style="text-align:right;white-space:nowrap">
+            <button class="btn btn-sm" onclick="openUserModal('${u.id}')"><i class="ti ti-edit"></i></button>
+            ${u.id!=='admin'?`
+            <button class="btn btn-sm ${u.active?'btn-danger':''}" onclick="toggleUser('${u.id}')" title="${u.active?'Disable':'Enable'}" style="margin-left:3px"><i class="ti ti-${u.active?'lock':'lock-open'}"></i></button>
+            <button class="btn btn-sm" onclick="openReassignModal('${u.id}')" title="Reassign students" style="margin-left:3px"><i class="ti ti-arrows-exchange"></i></button>`:''}
+          </td>
+        </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">Counselor workload</div>
+      ${counselors().map(c=>{
+        const cnt=DB.students.filter(s=>s.counselorId===c.id).length;
+        const max=Math.max(...counselors().map(co=>DB.students.filter(s=>s.counselorId===co.id).length),1);
+        const enrolled=DB.students.filter(s=>s.counselorId===c.id&&s.status==='Enrolled').length;
+        const calls=DB.calls.filter(ca=>ca.counselorId===c.id).length;
+        return `<div class="c-work-card">${avHtml(c.name,c.color,40,15)}<div class="c-work-info"><div class="c-work-name">${c.name}</div><div class="c-stats"><span><i class="ti ti-users" style="font-size:12px"></i> ${cnt} students</span><span><i class="ti ti-phone" style="font-size:12px"></i> ${calls} calls</span><span><i class="ti ti-check" style="font-size:12px"></i> ${enrolled} enrolled</span><span style="color:var(--text3)">${c.email}</span></div><div class="pbar-bg"><div class="pbar" style="width:${Math.round(cnt/max*100)}%;background:${c.color}"></div></div></div></div>`;
+      }).join('')}
+    </div>`;
+}
+
+function toggleUser(uid) {
+  const u=getUser(uid); u.active=!u.active;
+  showToast(u.active?`${u.name} enabled`:`${u.name} disabled`, u.active?'#10b981':'#ef4444');
+  renderUsers();
+}
+
+// ─── IMPORT ──────────────────────────────────────────────
+function renderImport() {
+  if(CU.role!=='admin') return;
+  const cOpts = counselors().map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  document.getElementById('pg-import').innerHTML = `
+    <div class="ph"><div class="ph-title">Import students</div></div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title">Upload file</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Supported formats: <strong>.xlsx</strong> and <strong>.csv</strong>. Required columns: <strong>Name</strong>. Optional: Email, Phone, Course, City.</p>
+      <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-inp').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="onFileDrop(event)">
+        <i class="ti ti-file-spreadsheet"></i>
+        <p>Click to browse or drag & drop your file here</p>
+        <small>.xlsx or .csv — up to 5,000 rows</small>
+      </div>
+      <input type="file" id="file-inp" accept=".xlsx,.csv" style="display:none" onchange="onFileSelect(this.files[0])">
+      <div id="import-preview" style="display:none;margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+          <div><strong id="imp-count"></strong><div style="font-size:12px;color:var(--text2);margin-top:2px">Preview shows first 10 rows</div></div>
+          <div class="frow" style="align-items:flex-end">
+            <div class="fg"><label>Assign all to counselor</label><select id="bulk-c" style="width:200px"><option value="">— keep unassigned —</option>${cOpts}</select></div>
+            <button class="btn btn-primary" onclick="confirmImport()"><i class="ti ti-check"></i>Import all</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table><thead><tr id="imp-head"></tr></thead><tbody id="imp-body"></tbody></table></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Sample CSV template</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Download and fill this template, then upload it above.</p>
+      <button class="btn" onclick="downloadTemplate()"><i class="ti ti-download"></i>Download template.csv</button>
+    </div>`;
+}
+
+function onFileDrop(ev) {
+  ev.preventDefault(); document.getElementById('drop-zone').classList.remove('drag');
+  onFileSelect(ev.dataTransfer.files[0]);
+}
+function onFileSelect(file) {
+  if(!file) return;
+  const n = file.name.toLowerCase();
+  if(n.endsWith('.csv')) { const r=new FileReader(); r.onload=e=>parseCSV(e.target.result); r.readAsText(file); }
+  else if(n.endsWith('.xlsx')) { const r=new FileReader(); r.onload=e=>{const wb=XLSX.read(e.target.result,{type:'binary'});parseCSV(XLSX.utils.sheet_to_csv(wb.Sheets[wb.SheetNames[0]]));}; r.readAsBinaryString(file); }
+  else showToast('Please upload .xlsx or .csv only','#ef4444');
+}
+function parseCSV(text) {
+  const lines=text.trim().split('\n').filter(l=>l.trim());
+  const headers=lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
+  importRows=lines.slice(1).map(l=>{const vals=l.split(',').map(v=>v.trim().replace(/^"|"$/g,''));const o={};headers.forEach((h,i)=>o[h]=vals[i]||'');return o;});
+  document.getElementById('imp-head').innerHTML=headers.map(h=>`<th>${h}</th>`).join('');
+  document.getElementById('imp-body').innerHTML=importRows.slice(0,10).map(r=>`<tr>${headers.map(h=>`<td style="font-size:12px">${r[h]||''}</td>`).join('')}</tr>`).join('');
+  document.getElementById('imp-count').textContent=`${importRows.length} students ready to import`;
+  document.getElementById('import-preview').style.display='block';
+}
+function confirmImport() {
+  if(!importRows.length) return;
+  const cId=document.getElementById('bulk-c').value||null;
+  const find=(row,keys)=>{for(const k of keys)if(row[k])return row[k];return '';};
+  importRows.forEach(r=>{DB.students.push({id:DB.nextSId++,name:find(r,['Name','name','Full Name','student_name'])||'Unknown',email:find(r,['Email','email','Email Address']),phone:find(r,['Phone','phone','Mobile','mobile','Contact']),course:find(r,['Course','course','Program','program']),city:find(r,['City','city','Location','location']),counselorId:cId,status:'New',notes:'',created:new Date().toISOString().split('T')[0]});});
+  const cnt=importRows.length; importRows=[];
+  document.getElementById('import-preview').style.display='none';
+  showToast(`${cnt} students imported successfully`);
+  nav('students');
+}
+function downloadTemplate() {
+  const csv='Name,Email,Phone,Course,City\nJohn Doe,john@example.com,9876543210,MBA,Mumbai\nJane Smith,jane@example.com,9123456789,BBA,Delhi';
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='student_template.csv'; a.click();
+}
+
+// ─── MODALS ──────────────────────────────────────────────
+function openModal(html) {
+  document.getElementById('modal-root').innerHTML = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">${html}</div>`;
+}
+function closeModal() { document.getElementById('modal-root').innerHTML=''; }
+
+// Student Modal
+function openStudentModal(id) {
+  const s = id ? getStudent(id) : null;
+  const cOpts = counselors().map(c=>`<option value="${c.id}"${s&&s.counselorId===c.id?' selected':''}>${c.name}</option>`).join('');
+  const stOpts = ['New','Contacted','Follow-up','Enrolled','Inactive'].map(st=>`<option${s&&s.status===st?' selected':''}>${st}</option>`).join('');
+  openModal(`<div class="modal">
+    <h3>${s?'Edit student':'Add student'}</h3>
+    <div class="fg2">
+      <div class="fg"><label>Full name *</label><input id="sm-n" value="${s?s.name:''}"></div>
+      <div class="fg"><label>Phone</label><input id="sm-ph" value="${s?s.phone:''}"></div>
+    </div>
+    <div class="fg" style="margin-top:10px"><label>Email</label><input id="sm-e" value="${s?s.email:''}" type="email"></div>
+    <div class="fg2" style="margin-top:10px">
+      <div class="fg"><label>Course</label><input id="sm-c" value="${s?s.course:''}"></div>
+      <div class="fg"><label>City</label><input id="sm-ci" value="${s?s.city:''}"></div>
+    </div>
+    <div class="fg2" style="margin-top:10px">
+      <div class="fg"><label>Assigned counselor</label><select id="sm-co"><option value="">— Unassigned —</option>${cOpts}</select></div>
+      <div class="fg"><label>Status</label><select id="sm-st">${stOpts}</select></div>
+    </div>
+    <div class="fg" style="margin-top:10px"><label>Notes</label><textarea id="sm-no">${s?s.notes:''}</textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStudent(${id||0})">${s?'Save changes':'Add student'}</button>
+    </div>
+  </div>`);
+}
+function saveStudent(id) {
+  const name=document.getElementById('sm-n').value.trim();
+  if(!name){showToast('Name is required','#ef4444');return;}
+  const data={name,phone:document.getElementById('sm-ph').value.trim(),email:document.getElementById('sm-e').value.trim(),course:document.getElementById('sm-c').value.trim(),city:document.getElementById('sm-ci').value.trim(),counselorId:document.getElementById('sm-co').value||null,status:document.getElementById('sm-st').value,notes:document.getElementById('sm-no').value.trim()};
+  if(id){Object.assign(getStudent(id),data);}else{DB.students.push({id:DB.nextSId++,created:new Date().toISOString().split('T')[0],...data});}
+  closeModal(); showToast(id?'Student updated':'Student added'); renderStudents();
+}
+function deleteStudent(id) {
+  if(!confirm('Delete this student? This also removes their call history.')) return;
+  DB.students=DB.students.filter(s=>s.id!==id);
+  DB.calls=DB.calls.filter(c=>c.studentId!==id);
+  showToast('Student deleted','#ef4444'); renderStudents();
+}
+
+// Call Modal
+let timerInt=null, timerS=0;
+function openCallModal(studentId) {
+  const sOpts=myStudents().map(s=>`<option value="${s.id}"${s.id===studentId?' selected':''}>${s.name}${s.course?' ('+s.course+')':''}</option>`).join('');
+  const cOpts=counselors().map(c=>`<option value="${c.id}"${c.id===CU.id?' selected':''}>${c.name}</option>`).join('');
+  const now=new Date();
+  openModal(`<div class="modal">
+    <h3>Log a call</h3>
+    <div class="fg2">
+      <div class="fg"><label>Student *</label><select id="cl-s">${sOpts}</select></div>
+      <div class="fg"><label>Counselor *</label><select id="cl-c">${cOpts}</select></div>
+    </div>
+    <div class="fg3" style="margin-top:10px">
+      <div class="fg"><label>Date</label><input type="date" id="cl-d" value="${now.toISOString().split('T')[0]}"></div>
+      <div class="fg"><label>Time</label><input type="time" id="cl-t" value="${now.toTimeString().slice(0,5)}"></div>
+      <div class="fg"><label>Duration (minutes)</label><input type="number" id="cl-dur" min="0" value="0"></div>
+    </div>
+    <div class="fg2" style="margin-top:10px">
+      <div class="fg"><label>Outcome</label><select id="cl-o"><option>Connected</option><option>No answer</option><option>Voicemail</option><option>Callback requested</option></select></div>
+      <div class="fg"><label>Update student status</label><select id="cl-st"><option value="">— no change —</option><option>New</option><option>Contacted</option><option>Follow-up</option><option>Enrolled</option><option>Inactive</option></select></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px;background:var(--surface2);border-radius:var(--radius)">
+      <div class="timer-pill" id="tp"><div class="timer-dot" id="td"></div><span id="tt" style="font-family:monospace;letter-spacing:.05em">00:00</span></div>
+      <button class="btn btn-sm" id="tbtn" onclick="toggleTimer()"><i class="ti ti-player-play"></i> Start timer</button>
+      <span style="font-size:11px;color:var(--text3)">Auto-fills duration</span>
+    </div>
+    <div class="fg" style="margin-top:10px"><label>Notes</label><textarea id="cl-n" placeholder="What was discussed, next steps…"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal();stopTimer()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCall()"><i class="ti ti-check"></i>Save call</button>
+    </div>
+  </div>`);
+}
+function toggleTimer() {
+  const pill=document.getElementById('tp'),dot=document.getElementById('td'),btn=document.getElementById('tbtn');
+  if(timerInt){clearInterval(timerInt);timerInt=null;pill.classList.remove('running');btn.innerHTML='<i class="ti ti-player-play"></i> Resume';}
+  else{pill.classList.add('running');btn.innerHTML='<i class="ti ti-player-pause"></i> Pause';timerInt=setInterval(()=>{timerS++;const m=String(Math.floor(timerS/60)).padStart(2,'0'),s=String(timerS%60).padStart(2,'0');const tt=document.getElementById('tt');if(tt)tt.textContent=`${m}:${s}`;const du=document.getElementById('cl-dur');if(du)du.value=Math.floor(timerS/60);},1000);}
+}
+function stopTimer(){if(timerInt)clearInterval(timerInt);timerInt=null;timerS=0;}
+function saveCall(){
+  const sId=Number(document.getElementById('cl-s').value);
+  const cId=document.getElementById('cl-c').value;
+  if(!sId||!cId){showToast('Select a student and counselor','#ef4444');return;}
+  stopTimer();
+  DB.calls.push({id:DB.nextCId++,studentId:sId,counselorId:cId,date:document.getElementById('cl-d').value,time:document.getElementById('cl-t').value,duration:Number(document.getElementById('cl-dur').value)||0,outcome:document.getElementById('cl-o').value,notes:document.getElementById('cl-n').value.trim()});
+  const ns=document.getElementById('cl-st').value;
+  if(ns){const s=getStudent(sId);if(s)s.status=ns;}
+  closeModal(); showToast('Call logged'); renderCalls();
+}
+
+// User Modal
+function openUserModal(id) {
+  const u=id?getUser(id):null;
+  const colorOpts=['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#e87ba4','#eb6834','#06b6d4'].map(c=>`<option value="${c}"${u&&u.color===c?' selected':''}>${c}</option>`).join('');
+  openModal(`<div class="modal">
+    <h3>${u?'Edit user':'Add new user'}</h3>
+    <div class="fg2">
+      <div class="fg"><label>Full name *</label><input id="um-n" value="${u?u.name:''}"></div>
+      <div class="fg"><label>Email *</label><input id="um-e" type="email" value="${u?u.email:''}"></div>
+    </div>
+    <div class="fg2" style="margin-top:10px">
+      <div class="fg"><label>Password${u?' (blank = unchanged)':' *'}</label><input type="password" id="um-p" placeholder="${u?'leave blank to keep current':'minimum 6 characters'}"></div>
+      <div class="fg"><label>Role</label><select id="um-r" ${u&&u.id==='admin'?'disabled':''}><option value="counselor"${u&&u.role==='counselor'?' selected':''}>Counselor</option><option value="admin"${u&&u.role==='admin'?' selected':''}>Admin</option></select></div>
+    </div>
+    <div class="fg" style="margin-top:10px"><label>Avatar color</label><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+      ${['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#e87ba4','#eb6834','#06b6d4'].map(c=>`<div onclick="document.getElementById('um-col').value='${c}';document.querySelectorAll('.col-swatch').forEach(s=>s.classList.remove('sel'));this.classList.add('sel')" class="col-swatch${u&&u.color===c?' sel':''}" style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;border:3px solid ${u&&u.color===c?'var(--text)':'transparent'};transition:.15s" title="${c}"></div>`).join('')}
+      <input type="hidden" id="um-col" value="${u?u.color:'#3b82f6'}">
+    </div></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUser('${id||''}')">${u?'Save changes':'Create user'}</button>
+    </div>
+  </div>`);
+}
+function saveUser(id){
+  const name=document.getElementById('um-n').value.trim();
+  const email=document.getElementById('um-e').value.trim();
+  const pass=document.getElementById('um-p').value;
+  const role=document.getElementById('um-r').value;
+  const color=document.getElementById('um-col').value;
+  if(!name||!email){showToast('Name and email are required','#ef4444');return;}
+  if(id){const u=getUser(id);u.name=name;u.email=email;u.role=role;u.color=color;if(pass)u.password=pass;}
+  else{if(!pass||pass.length<6){showToast('Password must be at least 6 characters','#ef4444');return;}DB.users.push({id:'u'+Date.now(),name,email,password:pass,role,color,active:true,created:new Date().toISOString().split('T')[0]});}
+  closeModal(); showToast(id?'User updated':'User created'); renderUsers();
+}
+
+// Reassign Modal
+function openReassignModal(fromId){
+  const from=getUser(fromId);
+  const students=DB.students.filter(s=>s.counselorId===fromId);
+  if(!students.length){showToast(`${from.name} has no students to reassign`,'#f59e0b');return;}
+  const cOpts=counselors().filter(c=>c.id!==fromId).map(c=>`<option value="${c.id}">${c.name} (${DB.students.filter(s=>s.counselorId===c.id).length} students)</option>`).join('');
+  openModal(`<div class="modal">
+    <h3>Reassign students</h3>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px"><strong>${students.length} students</strong> currently assigned to <strong>${from.name}</strong> will be moved to the selected counselor.</p>
+    <div class="fg"><label>Transfer all students to *</label><select id="ra-to"><option value="">Select counselor…</option>${cOpts}</select></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="doReassign('${fromId}')">Reassign students</button>
+    </div>
+  </div>`);
+}
+function doReassign(fromId){
+  const toId=document.getElementById('ra-to').value;
+  if(!toId){showToast('Select a counselor','#ef4444');return;}
+  let cnt=0; DB.students.forEach(s=>{if(s.counselorId===fromId){s.counselorId=toId;cnt++;}});
+  closeModal(); showToast(`${cnt} students reassigned to ${getUser(toId).name}`); renderUsers();
+}
+
+// color swatch selection
+document.addEventListener('click', e => {
+  if(e.target.classList.contains('col-swatch')) {
+    document.querySelectorAll('.col-swatch').forEach(s=>s.style.borderColor='transparent');
+    e.target.style.borderColor='var(--text)';
+  }
+});
+</script>
+</body>
+</html>
